@@ -1,4 +1,4 @@
-FROM php:7.0.2-fpm
+FROM php:7.1-fpm
 MAINTAINER Petter Kjelkenes <kjelkenes@gmail.com>
 
 RUN apt-get update \
@@ -22,7 +22,9 @@ RUN docker-php-ext-install \
   mcrypt \
   pdo_mysql \
   xsl \
-  zip
+  zip \
+  soap \
+  bcmath \
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --version=1.1.0
 
