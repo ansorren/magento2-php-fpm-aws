@@ -96,8 +96,8 @@ RUN mkdir -p /var/www
 WORKDIR /src
 
 RUN apt-get update && apt-get install -y gcc g++ unzip jq
-RUN curl -o clusterclient-aws-php7.zip https://s3.amazonaws.com/elasticache-downloads/ClusterClient/PHP-7.0/latest-64bit && \
-     unzip clusterclient-aws-php7.zip && \
+RUN curl -o clusterclient-aws-php7.tar.gz https://s3.amazonaws.com/elasticache-downloads/ClusterClient/PHP-7.0/latest-64bit && \
+     tar -xvzf clusterclient-aws-php7.tar.gz && \
      cp artifact/amazon-elasticache-cluster-client.so "$(php -r 'echo ini_get("extension_dir");')" && \ 
      docker-php-ext-enable amazon-elasticache-cluster-client
 
