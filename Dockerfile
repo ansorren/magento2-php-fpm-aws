@@ -1,4 +1,4 @@
-FROM php:7.1-fpm
+FROM php:7.0-fpm
 MAINTAINER Petter Kjelkenes <kjelkenes@gmail.com>
 
 RUN apt-get update \
@@ -14,6 +14,8 @@ RUN apt-get update \
 
 RUN docker-php-ext-configure \
   gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+  
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN docker-php-ext-install \
   gd \
@@ -25,8 +27,6 @@ RUN docker-php-ext-install \
   zip \
   soap \
   bcmath \
-
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer --version=1.1.0
 
 RUN echo "*/1 * * * * su -c \"/usr/local/bin/php /src/update/cron.php >> /src/var/log/magento.cron.log\" -s /bin/sh www-data" | crontab - \
   && (crontab -l ; echo "*/1 * * * * su -c \"/usr/local/bin/magento-varnish-cron >> /src/var/log/aws-magento-varnish.cron.log\" -s /bin/sh www-data") | crontab - \
