@@ -25,13 +25,13 @@ RUN docker-php-ext-install \
   xsl \
   zip \
   soap \
-  bcmath \
+  bcmath
 
 RUN curl -o /tmp/composer-setup.php https://getcomposer.org/installer \
-&& curl -o /tmp/composer-setup.sig https://composer.github.io/installer.sig \
-&& php -r "if (hash('SHA384', file_get_contents('/tmp/composer-setup.php')) !== trim(file_get_contents('/tmp/composer-setup.sig'))) { unlink('/tmp/composer-setup.php'); echo 'Invalid installer' . PHP_EOL; exit(1); }" \
-&& php /tmp/composer-setup.php --no-ansi --install-dir=/usr/local/bin --filename=composer --snapshot \
-&& rm -f /tmp/composer-setup.*
+  && curl -o /tmp/composer-setup.sig https://composer.github.io/installer.sig \
+  && php -r "if (hash('SHA384', file_get_contents('/tmp/composer-setup.php')) !== trim(file_get_contents('/tmp/composer-setup.sig'))) { unlink('/tmp/composer-setup.php'); echo 'Invalid installer' . PHP_EOL; exit(1); }" \
+  && php /tmp/composer-setup.php --no-ansi --install-dir=/usr/local/bin --filename=composer --snapshot \
+  && rm -f /tmp/composer-setup.*
 
 RUN echo "*/1 * * * * su -c \"/usr/local/bin/php /src/update/cron.php >> /src/var/log/magento.cron.log\" -s /bin/sh www-data" | crontab - \
   && (crontab -l ; echo "*/1 * * * * su -c \"/usr/local/bin/magento-varnish-cron >> /src/var/log/aws-magento-varnish.cron.log\" -s /bin/sh www-data") | crontab - \
