@@ -71,7 +71,7 @@ echo "SSMTP_FROM_LINE_OVERRIDE: ${SSMTP_FROM_LINE_OVERRIDE}"
 echo "AVOID_COMPOSER: ${AVOID_COMPOSER}"
 
 # Make sure this line comes last, otherwise find/replace will replace above vars
-[ ! -z "${PHP_PM}" ]                   && sed -i "s/PHP_PM/${PHP_PM}/" /usr/local/etc/php-fpm.conf
+[ ! -z "${PHP_PM}" ] && sed -i "s/PHP_PM/${PHP_PM}/" /usr/local/etc/php-fpm.conf
 
 
 if [ -z "${AVOID_COMPOSER}" ]; then
@@ -102,6 +102,8 @@ chown -R www-data:www-data /src
 chmod +x /src/bin/magento
 chmod +x /src/bin/magento-php
 
+echo "Running magento setup:uninstall"
+/src/bin/magento setup:uninstall
 
 echo "Running magento setup:install"
 /src/bin/magento setup:install \
