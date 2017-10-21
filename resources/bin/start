@@ -102,23 +102,12 @@ chown -R www-data:www-data /src
 chmod +x /src/bin/magento
 chmod +x /src/bin/magento-php
 
-
-echo "Running magento replace env vars"
-chmod +x /usr/local/bin/magento-replace-env-vars
-APP_DIR=/src ELASTICACHE_CONNECTION="${ELASTICACHE_CONNECTION}" /usr/local/bin/magento-replace-env-vars
-
 echo "Correcting permissions"
 chown -R www-data:www-data /src
 chmod -R 0777 /src
 
+echo "Starting CRON"
+/usr/sbin/cron
 
-# Only start php-fpm if successful ...
-if [ -f /src/app/etc/env.php ]; then
-    echo "Starting CRON"
-    /usr/sbin/cron
-
-    echo "Starting php-fpm"
-    /usr/local/sbin/php-fpm
-else
-    echo "ERROR: could not find /src/composer.lock in magento php container.... Did you mount magento root dir as a volume to /src? You should..."
-fi
+echo "Starting php-fpm"
+/usr/local/sbin/php-fpm
