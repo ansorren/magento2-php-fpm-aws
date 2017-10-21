@@ -102,70 +102,10 @@ chown -R www-data:www-data /src
 chmod +x /src/bin/magento
 chmod +x /src/bin/magento-php
 
-echo "Running magento setup:uninstall"
-/src/bin/magento setup:uninstall
-
-echo "Running magento setup:install"
-/src/bin/magento setup:install \
-      --db-host="${RDS_HOSTNAME}" \
-      --db-name="${RDS_DB_NAME}" \
-      --db-user="${RDS_USERNAME}" \
-      --db-password="${RDS_PASSWORD}" \
-      --backend-frontname="${MAGENTO_BACKEND_FRONTNAME}" \
-      --language="${MAGENTO_LANGUAGE}" \
-      --timezone="${MAGENTO_TIMEZONE}" \
-      --currency="${MAGENTO_CURRENCY}" \
-      --admin-lastname="${MAGENTO_ADMIN_LASTNAME}"\
-      --admin-firstname="${MAGENTO_ADMIN_FIRSTNAME}" \
-      --admin-email="${MAGENTO_ADMIN_EMAIL}" \
-      --admin-user="${MAGENTO_ADMIN_USERNAME}" \
-      --admin-password="${MAGENTO_ADMIN_PASSWORD}" \
-      --use-rewrites="${MAGENTO_USE_REWRITES}"
-
 
 echo "Running magento replace env vars"
 chmod +x /usr/local/bin/magento-replace-env-vars
 APP_DIR=/src ELASTICACHE_CONNECTION="${ELASTICACHE_CONNECTION}" /usr/local/bin/magento-replace-env-vars
-
-echo "Setting asset minification defaults"
-mysql -u "${RDS_USERNAME}" -p"${RDS_PASSWORD}" -h "${RDS_HOSTNAME}" -P "${RDS_PORT}" "${RDS_DB_NAME}" -e "REPLACE INTO core_config_data (value, path) VALUES \
-                    ('${WEBSITE_SECURE_URL}', 'web/secure/base_url'), ('${WEBSITE_UNSECURE_URL}', 'web/unsecure/base_url'), \
-                    ('', 'web/secure/base_static_url'), ('', 'web/unsecure/base_static_url'), \
-                    ('0',  'dev/js/merge_files'), ('0', 'dev/js/minify_files'), ('0', 'dev/js/enable_js_bundling'), \
-                    ('1',  'dev/css/merge_files'), ('0', 'dev/css/minify_files'), \
-                    ('1', 'dev/template/minify_html');"
-
-echo "Creating docker_varnish_hosts table if not exist."
-mysql -u "${RDS_USERNAME}" -p"${RDS_PASSWORD}" -h "${RDS_HOSTNAME}" -P "${RDS_PORT}" "${RDS_DB_NAME}" -e 'CREATE TABLE IF NOT EXISTS `docker_varnish_hosts` ( `hostname` varchar(700) NOT NULL, `last_checked` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`hostname`), UNIQUE KEY `hostname` (`hostname`) )'
-
-
-echo "Enabling S3 assets module"
-/src/bin/magento module:enable Arkade_S3
-/src/bin/magento s3:config:set \
-    --access-key-id "${MEDIA_S3_ACCESS_KEY}" \
-    --secret-key "${MEDIA_S3_SECRET_KEY}" \
-    --bucket "${MEDIA_S3_BUCKET}" \
-    --region "${MEDIA_S3_REGION}"
-
-
-echo "Running full reindex"
-/src/bin/magento indexer:reindex
-
-echo "Clearing cache"
-/src/bin/magento cache:clean
-/src/bin/magento cache:flush
-
-echo "Setup upgrade"
-/src/bin/magento setup:upgrade
-
-echo "DI Compliation"
-/src/bin/magento setup:di:compile 
-
-echo "Deploying static files"
-chown -R www-data:www-data /src
-chmod -R 0777 /src
-/src/bin/magento setup:static-content:deploy "${MAGENTO_LANGUAGE} en_US"
-
 
 echo "Correcting permissions"
 chown -R www-data:www-data /src
