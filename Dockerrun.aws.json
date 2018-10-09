@@ -1,0 +1,147 @@
+{
+  "AWSEBDockerrunVersion": 2,
+  "volumes": [
+    {
+      "name": "php-app",
+      "host": {
+        "sourcePath": "/var/app/current/web"
+      }
+    },
+    {
+      "name": "nginx-proxy-conf",
+      "host": {
+        "sourcePath": "/var/app/current/server_env/proxy/conf.d"
+      }
+    },
+    {
+      "name": "varnish-conf",
+      "host": {
+        "sourcePath": "/var/app/current/server_env/varnish/default.vcl"
+      }
+    },
+    {
+      "name": "varnish-lib",
+      "host": {
+        "sourcePath": "/var/lib/varnish"
+      }
+    }
+
+  ],
+  "containerDefinitions": [
+    {
+      "name": "nginx-proxy",
+      "image": "nginx",
+      "essential": true,
+      "memory": 128,
+      "links": [
+        "php-app"
+      ],
+      "portMappings": [
+        {
+          "hostPort": 8080,
+          "containerPort": 8080
+        }
+      ],
+      "environment": [
+        {
+          "name": "NGINX_PORT",
+          "value": "8080"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "php-app",
+          "containerPath": "/src"
+        },
+        {
+          "sourceVolume": "awseb-logs-nginx-proxy",
+          "containerPath": "/var/log/nginx"
+        },
+        {
+          "sourceVolume": "nginx-proxy-conf",
+          "containerPath": "/etc/nginx/conf.d",
+          "readOnly": true
+        }
+      ]
+    },
+    {
+      "name": "varnish",
+      "hostname": "varnish",
+      "image": "newsdev/varnish:4.1.0",
+      "essential": true,
+      "memory": 128,
+      "portMappings": [
+        {
+          "hostPort": 80,
+          "containerPort": 80
+        }
+      ],
+      "links": [
+        "nginx-proxy",
+        "php-app"
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "varnish-lib",
+          "containerPath": "/var/lib/varnish",
+          "readOnly": true
+        },
+        {
+          "sourceVolume": "awseb-logs-varnish",
+          "containerPath": "/var/log/varnish"
+        },
+        {
+          "sourceVolume": "varnish-conf",
+          "containerPath": "/etc/varnish/default.vcl",
+          "readOnly": true
+        }
+      ]
+    },
+    {
+      "name": "php-app",
+      "image": "peec/magento2-php-fpm-aws",
+      "essential": true,
+      "memory": 1024,
+      "environment": [
+        {
+          "name": "GITHUB_OAUTH_TOKEN",
+          "value": "xxxxx"
+        },
+        {
+          "name": "MAGENTO_REP_USERNAME",
+          "value": "xxxxx"
+        },
+        {
+          "name": "MAGENTO_REP_PASSWORD",
+          "value": "xxxxx"
+        },
+        {
+          "name": "SSMTP_ROOT",
+          "value": "xxxxx@gmail.com"
+        },
+        {
+          "name": "SSMTP_AUTHUSER",
+          "value": "xxxx@gmail.com"
+        },
+        {
+          "name": "SSMTP_AUTHPASS",
+          "value": "xxxxxxx"
+        },
+        {
+            "name": "WEBSITE_UNSECURE_URL",
+            "value": "http://my-env.xxxxxxx.eu-west-1.elasticbeanstalk.com"
+        },
+        {
+            "name": "WEBSITE_SECURE_URL",
+            "value": "https://my-env.xxxxxxx.eu-west-1.elasticbeanstalk.com"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "php-app",
+          "containerPath": "/src"
+        }
+      ]
+    }
+  ]
+}
